@@ -27,7 +27,7 @@ spec:
       serviceAccountName: {{ include "drone-runner-docker.serviceAccountName" . }}
       {{- with .Values.podSecurityContext }}
       securityContext:
-        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+        {{- toYaml . | nindent 8 }}
       {{- end }}
       {{- with .Values.hostAliases }}
       hostAliases:
@@ -39,7 +39,7 @@ spec:
       {{- end }}
       containers:
         - name: dind
-          image: "{{ .Values.dind.repository }}:{{ .Values.dind.tag }}"
+          image: "{{ .Values.dind.registry }}/{{ .Values.dind.repository }}:{{ .Values.dind.tag }}"
           imagePullPolicy: {{ .Values.dind.pullPolicy }}
           command: 
           {{- range .Values.dind.command }}
@@ -71,16 +71,42 @@ spec:
               - images
             initialDelaySeconds: 5
             periodSeconds: 5
+          {{- with .Values.dind.resources }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
           {{- with .Values.dind.extraVolumeMounts }}
           volumeMounts:
             {{- toYaml . | nindent 12 }}
           {{- end }}
+        {{- if $.Values.gc.enabled }}
+        - name: gc
+          image: "{{ .Values.gc.registry }}/{{ .Values.gc.repository }}:{{ .Values.gc.tag }}"
+          imagePullPolicy: {{ .Values.gc.pullPolicy }}
+          {{- with .Values.gc.securityContext }}
+          securityContext:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          env:
+            - name: DOCKER_HOST
+              value: {{ .Values.env.DOCKER_HOST }}
+          {{- if $.Values.gc.env }}
+            {{- range $key, $value := $.Values.gc.env }}
+            - name: {{ $key }}
+              value: {{ $value | quote }}
+            {{- end }}
+          {{- end }}
+          {{- with .Values.gc.resources }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+        {{- end }}
         - name: {{ .Chart.Name }}
           {{- with .Values.securityContext }}
           securityContext:
-            {{- toYaml .Values.securityContext | nindent 12 }}
+            {{- toYaml . | nindent 12 }}
           {{- end }}
-          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          image: "{{ .Values.image.registry }}/{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           envFrom:
             - configMapRef:
@@ -88,6 +114,10 @@ spec:
           {{- range .Values.extraSecretNamesForEnvFrom }}
             - secretRef:
                 name: {{ . }}
+          {{- end }}
+          {{- with .Values.extraVolumeMounts }}
+          volumeMounts:
+            {{- toYaml . | nindent 12 }}
           {{- end }}
           env:
             - name: DOCKER_HOST
@@ -108,7 +138,7 @@ spec:
               port: tcp
           {{- with .Values.resources }}
           resources:
-            {{- toYaml .Values.resources | nindent 10 }}
+            {{- toYaml . | nindent 12 }}
           {{- end }}
       {{- with .Values.nodeSelector }}
       nodeSelector:

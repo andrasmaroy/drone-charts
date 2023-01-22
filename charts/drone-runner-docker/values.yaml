@@ -14,6 +14,7 @@ replicaCount: 1
 ## ref: https://hub.docker.com/r/drone/drone-runner-docker/tags/
 ##
 image:
+  registry: docker.io
   repository: drone/drone-runner-docker
   pullPolicy: IfNotPresent
   # Overrides the image tag whose default is the chart appVersion.
@@ -36,6 +37,7 @@ dind:
   ## The official docker (dind) image, change tag to use a different version.
   ## ref: https://hub.docker.com/r/library/docker/tags/
   ##
+  registry: docker.io
   repository: docker
   tag: 20-dind
   pullPolicy: IfNotPresent
@@ -53,6 +55,51 @@ dind:
     - name: storage
       mountPath: /var/lib/docker
       subPath: docker
+  resources:
+    {}
+    # We usually recommend not to specify default resources and to leave this as a conscious
+    # choice for the user. This also increases chances charts run on environments with little
+    # resources, such as Minikube. If you do want to specify resources, uncomment the following
+    # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+    # limits:
+    #   cpu: 100m
+    #   memory: 128Mi
+    # requests:
+    #   cpu: 100m
+    #   memory: 128Mi
+
+## Values used only for the Drone Garbage Collector container
+gc:
+  enabled: true
+  ## The official Drone Garbage collector image, change tag to use a different version.
+  ## ref: https://hub.docker.com/r/drone/gc/tags
+  ##
+  registry: docker.io
+  repository: drone/gc
+  tag: 1.0.0
+  pullPolicy: IfNotPresent
+  securityContext:
+    {}
+  env:
+    GC_DEBUG: false
+    GC_DEBUG_COLOR: "false"
+    GC_DEBUG_PRETTY: "false"
+    GC_IGNORE_IMAGES: ""
+    GC_IGNORE_CONTAINERS: ""
+    GC_INTERVAL: "5m"
+    GC_CACHE: "5gb"
+  resources:
+    {}
+    # We usually recommend not to specify default resources and to leave this as a conscious
+    # choice for the user. This also increases chances charts run on environments with little
+    # resources, such as Minikube. If you do want to specify resources, uncomment the following
+    # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+    # limits:
+    #   cpu: 100m
+    #   memory: 128Mi
+    # requests:
+    #   cpu: 100m
+    #   memory: 128Mi
 
 imagePullSecrets: []
 
