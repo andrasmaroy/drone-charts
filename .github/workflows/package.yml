@@ -23,7 +23,7 @@ jobs:
       - name: Publish Helm chart to GHCR
         run: |
           helm package charts/drone
-          helm package charts/drone-runner-kube
+          # helm package charts/drone-runner-kube
           helm push drone-[0-9.]*.tgz oci://ghcr.io/andrasmaroy/drone-charts
-          helm push drone-runner-kube-[0-9.]*.tgz oci://ghcr.io/andrasmaroy/drone-charts
+          # helm push drone-runner-kube-[0-9.]*.tgz oci://ghcr.io/andrasmaroy/drone-charts
           rm drone-*.tgz
