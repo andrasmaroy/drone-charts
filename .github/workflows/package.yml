@@ -1,0 +1,29 @@
+name: Package
+
+on:
+ push:
+   branches: 
+     - master
+     
+jobs:
+  package:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Setup Helm
+        uses: azure/setup-helm@v3
+        with:
+          version: v3.10.3
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v1
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GHCR_TOKEN }}
+      - name: Publish Helm chart to GHCR
+        run: |
+          helm package charts/drone
+          helm package charts/drone-runner-kube
+          helm push drone-[0-9.]*.tgz oci://ghcr.io/andrasmaroy/drone-charts
+          helm push drone-runner-kube-[0-9.]*.tgz oci://ghcr.io/andrasmaroy/drone-charts
+          rm drone-*.tgz
